@@ -1,0 +1,16 @@
+[package]
+name = "py-binary-tree"
+version = "0.1.0"
+authors = ["Sergey <resh.sersh@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+name = "py_binary_tree"
+crate-type = ["rlib", "cdylib"]
+
+
+[dependencies.pyo3]
+version = "0.9.2"
+features = ["extension-module"]
