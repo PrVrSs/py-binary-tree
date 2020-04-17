@@ -24,13 +24,13 @@ impl Tree {
 
 #[pymethods]
 impl Tree {
-    fn insert(&mut self, element: i64) {
+    pub fn insert(&mut self, element: i64) {
         let inserted = match self.root {
-            None => {
+            Some(ref mut node) => node.insert(element),
+            _ => {
                 self.root = Some(Box::new(Node::new(element)));
                 true
             }
-            Some(ref mut node) => node.insert(element),
         };
 
         if inserted {
@@ -38,10 +38,10 @@ impl Tree {
         }
     }
 
-    fn get(&self, element: i64) -> Option<i64> {
+    pub fn get(&self, element: i64) -> Option<i64> {
         match self.root {
-            None => None,
             Some(ref node) => node.get(element),
+            _ => None,
         }
     }
 }
