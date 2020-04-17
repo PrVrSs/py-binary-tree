@@ -1,1 +1,1 @@
-from .py_binary_tree import Node
+from .py_binary_tree import Tree, Node

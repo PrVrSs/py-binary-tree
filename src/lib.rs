@@ -1,10 +1,50 @@
+use std::cmp::Ordering;
+use std::ops::{AddAssign};
+
 use pyo3::{
-    basic::{PyObjectProtocol, PyObjectReprProtocol, PyObjectStrProtocol},
     mapping::{PyMappingProtocol, PyMappingLenProtocol},
-    exceptions::RuntimeError,
     prelude::*,
 };
-use pyo3::wrap_pyfunction;
+
+
+#[pyclass]
+struct Tree {
+    root: Link,
+    len: usize,
+}
+
+#[pymethods]
+impl Tree {
+    #[new]
+    fn new() -> Self {
+        Tree { root: None, len: 0 }
+    }
+}
+
+
+#[pymethods]
+impl Tree {
+    fn insert(&mut self, element: i64) {
+        let inserted = match self.root {
+            None => {
+                self.root = Some(Box::new(Node::new(element)));
+                true
+            }
+            Some(ref mut node) => node.insert(element),
+        };
+
+        if inserted {
+            self.len.add_assign(1);
+        }
+    }
+
+    fn get(&self, element: i64) -> Option<i64> {
+        match self.root {
+            None => None,
+            Some(ref node) => node.get(element),
+        }
+    }
+}
 
 
 type Link = Option<Box<Node>>;
@@ -17,6 +57,18 @@ struct Node {
     left: Link,
     right: Link,
 }
+
+
+// pub struct IntoIter(Tree);
+//
+//
+// pub struct Iter<'a> {
+//     next: Option<&'a Node>,
+// }
+//
+// pub struct IterMut<'a> {
+//     next: Option<&'a mut Node>,
+// }
 
 
 // impl<'p> PyObjectReprProtocol<'p> for Node {
@@ -39,13 +91,13 @@ struct Node {
 // }
 
 
-impl<'p> PyMappingLenProtocol<'p> for Node {
+impl<'p> PyMappingLenProtocol<'p> for Tree {
     type Result = PyResult<usize>;
 }
 
-impl<'p> PyMappingProtocol<'p> for Node {
+impl<'p> PyMappingProtocol<'p> for Tree {
     fn __len__(&'p self) -> <Self as PyMappingLenProtocol>::Result {
-        Ok(2)
+        Ok(self.len)
     }
 }
 
@@ -62,28 +114,46 @@ impl Node {
         Ok(self.element)
     }
 
-    pub fn insert(&mut self, new_val: i64) {
+    pub fn insert(&mut self, new_val: i64) -> bool {
         if self.element == new_val {
-            return
+            return false;
         }
 
         let target_node = if new_val < self.element { &mut self.left } else { &mut self.right };
         match target_node {
-            &mut Some(ref mut subnode) => subnode.insert(new_val),
+            &mut Some(ref mut subnode) => { subnode.insert(new_val); },
             &mut None => {
                 let new_node = Node { element: new_val, left: None, right: None };
                 let boxed_node = Some(Box::new(new_node));
                 *target_node = boxed_node;
             }
         }
+
+        return true;
+    }
+
+    pub fn get(&self, element: i64) -> Option<i64> {
+        match element.cmp(&self.element) {
+            Ordering::Less =>
+                match self.left {
+                    Some(ref left) => left.get(element),
+                    _ => None,
+                }
+            Ordering::Equal => Some(self.element),
+            Ordering::Greater =>
+                match self.right {
+                    Some(ref right) => right.get(element),
+                    _ => None,
+                }
+        }
     }
 }
 
 
-/// This module is a python module implemented in Rust.
 #[pymodule]
-fn py_binary_tree(_py: Python, m: &PyModule) -> PyResult<()> {
+fn py_binary_tree(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;
+    m.add_class::<Tree>()?;
     m.add_class::<Node>()?;
 
     Ok(())
