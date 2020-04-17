@@ -19,3 +19,7 @@ test:
 .PHONY: clean
 clean:
 	cargo clean
+
+.PHONY: lint
+lint:
+	cargo clippy

@@ -136,16 +136,15 @@ impl Node {
         }
 
         let target_node = if new_val < self.element { &mut self.left } else { &mut self.right };
-        match target_node {
-            &mut Some(ref mut subnode) => { subnode.insert(new_val); },
-            &mut None => {
+        match *target_node {
+            Some(ref mut subnode) => { subnode.insert(new_val); },
+            _ => {
                 let new_node = Node { element: new_val, left: None, right: None };
-
                 mem::replace(target_node, Some(Box::new(new_node)) );
             }
         }
 
-        return true;
+        true
     }
 
     pub fn get(&self, element: i64) -> Option<i64> {
