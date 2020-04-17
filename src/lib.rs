@@ -1,4 +1,6 @@
 use std::cmp::Ordering;
+use std::collections::VecDeque;
+use std::mem;
 use std::ops::{AddAssign};
 
 use pyo3::{
@@ -42,6 +44,20 @@ impl Tree {
         match self.root {
             Some(ref node) => node.get(element),
             _ => None,
+        }
+    }
+}
+
+
+impl Drop for Tree {
+    fn drop(&mut self) {
+        let mut vector = VecDeque::with_capacity(self.len * 2);
+
+        vector.push_back(self.root.take());
+
+        while let Some(Some(mut boxed_node)) = vector.pop_front() {
+            vector.push_back(boxed_node.left.take());
+            vector.push_back(boxed_node.right.take());
         }
     }
 }
@@ -124,8 +140,8 @@ impl Node {
             &mut Some(ref mut subnode) => { subnode.insert(new_val); },
             &mut None => {
                 let new_node = Node { element: new_val, left: None, right: None };
-                let boxed_node = Some(Box::new(new_node));
-                *target_node = boxed_node;
+
+                mem::replace(target_node, Some(Box::new(new_node)) );
             }
         }
 
