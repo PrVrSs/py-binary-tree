@@ -1,37 +1,34 @@
-from py_binary_tree import Tree
+import pytest
 
 
-def test_len_case():
-    tree = Tree()
+fixtures_len = (
+    ([1, 2, 3], 3),
+    ([1, 1, 3], 2),
+)
 
-    tree.insert(1)
-    tree.insert(2)
-    tree.insert(3)
-    assert len(tree) == 3
-
-
-def test_len_case_2():
-    tree = Tree()
-
-    tree.insert(1)
-    tree.insert(1)
-    tree.insert(3)
-    assert len(tree) == 2
+fixtures_get = (
+    ([1, 2, 3], 3, 3),
+    ([1, 2, 3], 4, None),
+)
 
 
-def test_get_case():
-    tree = Tree()
+@pytest.mark.parametrize('test_data', fixtures_len)
+def test_len_case(test_data, tree_creator):
+    vector, expected = test_data
 
-    tree.insert(1)
-    tree.insert(2)
-    tree.insert(3)
-    assert tree.get(3) == 3
+    tree = tree_creator(vector)
+    assert len(tree) == expected
 
 
-def test_get_case2():
-    tree = Tree()
+@pytest.mark.parametrize('test_data', fixtures_get)
+def test_get_case(test_data, tree_creator):
+    vector, get_val, expected = test_data
+    tree = tree_creator(vector)
 
-    tree.insert(1)
-    tree.insert(2)
-    tree.insert(3)
-    assert tree.get(4) is None
+    assert tree.get(get_val) == expected
+
+
+def test_repr(tree_creator):
+    tree = tree_creator([10, 20, 6, 4])
+
+    assert tree.__repr__() == 'BST(Node(10 -> left(Node(6 -> left(Node(4 -> left(None) right(None))) right(None))) right(Node(20 -> left(None) right(None)))))'
